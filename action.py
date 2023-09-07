@@ -9,58 +9,58 @@ import time
 
 class Action:    
     def set_plan_hardware(self, ctx, nameKey, ctxKey, planKey):
-        print("setei o plano")
-        # esp8266_url = f"http://192.168.161.84/setplan"
+        print(f"setei o plano: {nameKey}, {ctxKey}, {planKey}")
+        esp8266_url = f"http://192.168.161.84/setplan"
     
-        # data = {
-        #     "nameKey": nameKey,
-        #     "ctxKey": json.dumps(ctxKey),
-        #     "planKey": json.dumps(planKey)
-        # }
+        data = {
+            "nameKey": nameKey,
+            "ctxKey": json.dumps(ctxKey),
+            "planKey": json.dumps(planKey)
+        }
 
-        # response = requests.post(esp8266_url, data=data)
+        response = requests.post(esp8266_url, data=data)
 
-        # if response.status_code == 200:
-        #     print("POST request enviado com sucesso!")
-        #     ctx.storage.set_belief("set_plan", "ok")
-        #     print("###> Plan enviado <### ")
-        # else:
-        #     print(f"Erro ao enviar o POST request. Código de status: {response.status_code}")      
+        if response.status_code == 200:
+            print("POST request enviado com sucesso!")
+            ctx.storage.set_belief("set_plan", "ok")
+            print("###> Plan enviado <### ")
+        else:
+            print(f"Erro ao enviar o POST request. Código de status: {response.status_code}")      
             
     def set_belief_hardware(self, ctx, beliefsKey, beliefsValue):
-        print("setei as crenças")
-        # esp8266_url = f"http://192.168.161.84/setbeliefs"
+        print("setei as crenças: {beliefsKey}, {beliefsValue}")
+        esp8266_url = f"http://192.168.161.84/setbeliefs"
     
-        # data = {
-        #     "beliefsKey": beliefsKey,
-        #     "beliefsValue": beliefsValue
-        # }
+        data = {
+            "beliefsKey": beliefsKey,
+            "beliefsValue": beliefsValue
+        }
 
-        # response = requests.post(esp8266_url, data=data)
+        response = requests.post(esp8266_url, data=data)
 
-        # if response.status_code == 200:
-        #     print("POST request enviado com sucesso!")
-        #     ctx.storage.set_belief("set_belief", "ok")
-        #     print("###> Belief enviado <### ")
-        # else:
-        #     print(f"Erro ao enviar o POST request. Código de status: {response.status_code}")
+        if response.status_code == 200:
+            print("POST request enviado com sucesso!")
+            ctx.storage.set_belief("set_belief", "ok")
+            print("###> Belief enviado <### ")
+        else:
+            print(f"Erro ao enviar o POST request. Código de status: {response.status_code}")
 
     def set_desire_hardware(self, ctx, desireKey):
-        print("setei a desire (move ou outras)")
-        # esp8266_url = f"http://192.168.161.84/setdesire"
+        print("setei a desire {desireKey}")
+        esp8266_url = f"http://192.168.161.84/setdesire"
         
-        # data = {
-        #     "desireKey": desireKey
-        # }
+        data = {
+            "desireKey": desireKey
+        }
         
-        # response = requests.post(esp8266_url, data=data)
+        response = requests.post(esp8266_url, data=data)
         
-        # if response.status_code == 200:
-        #     print("POST request enviado com sucesso!")
-        #     ctx.storage.set_belief("set_desire", "ok")
-        #     print("###> Desire enviado <### ")
-        # else:
-        #     print(f"Erro ao enviar o POST request. Código de status: {response.status_code}")
+        if response.status_code == 200:
+            print("POST request enviado com sucesso!")
+            ctx.storage.set_belief("set_desire", "ok")
+            print("###> Desire enviado <### ")
+        else:
+            print(f"Erro ao enviar o POST request. Código de status: {response.status_code}")
         
     def date(self, ctx):
         time = datetime.datetime.now().strftime('%H:%M')
