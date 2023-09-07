@@ -10,7 +10,7 @@ import time
 class Action:    
     def set_plan_hardware(self, ctx, nameKey, ctxKey, planKey):
         print(f"setei o plano: {nameKey}, {ctxKey}, {planKey}")
-        esp8266_url = f"http://192.168.161.84/setplan"
+        esp8266_url = f"http://192.168.0.101/setplan"
     
         data = {
             "nameKey": nameKey,
@@ -29,7 +29,7 @@ class Action:
             
     def set_belief_hardware(self, ctx, beliefsKey, beliefsValue):
         print("setei as crenças: {beliefsKey}, {beliefsValue}")
-        esp8266_url = f"http://192.168.161.84/setbeliefs"
+        esp8266_url = f"http://192.168.0.101/setbeliefs"
     
         data = {
             "beliefsKey": beliefsKey,
@@ -47,7 +47,7 @@ class Action:
 
     def set_desire_hardware(self, ctx, desireKey):
         print("setei a desire {desireKey}")
-        esp8266_url = f"http://192.168.161.84/setdesire"
+        esp8266_url = f"http://192.168.0.101/setdesire"
         
         data = {
             "desireKey": desireKey
