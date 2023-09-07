@@ -1,0 +1,14 @@
+{
+    "vision_goal": true,
+    "obstacle_ahead": false,
+    "obstacle": true,
+    "obstaclex": 280.0,
+    "obstacley": 323.5,
+    "robot1y": 383.0,
+    "robot1x": 443.0,
+    "goalx": 225.0,
+    "goaly": 75.5,
+    "move_front": false,
+    "move_left": true,
+    "move_right": false
+}
