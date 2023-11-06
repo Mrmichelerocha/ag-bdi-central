@@ -9,7 +9,7 @@ import time
 
 class Action:    
     def set_plan_hardware(self, ctx, nameKey, ctxKey, planKey):
-        print(f"setei o plano: {nameKey}, {ctxKey}, {planKey}")
+        print(f"plano enviado ao periférico {nameKey}, {ctxKey}, {planKey}")
         esp8266_url = f"http://192.168.0.101/setplan"
     
         data = {
@@ -27,13 +27,13 @@ class Action:
         else:
             print(f"Erro ao enviar o POST request. Código de status: {response.status_code}")      
             
-    def set_belief_hardware(self, ctx, beliefsKey, beliefsValue):
-        print("setei as crenças: {beliefsKey}, {beliefsValue}")
+    def set_belief_hardware(self, ctx, beliefsKey, valueKey):
+        print(f"crença enviada ao periférico {beliefsKey}, {valueKey}")
         esp8266_url = f"http://192.168.0.101/setbeliefs"
     
         data = {
             "beliefsKey": beliefsKey,
-            "beliefsValue": beliefsValue
+            "beliefsValue": valueKey
         }
 
         response = requests.post(esp8266_url, data=data)
@@ -46,7 +46,7 @@ class Action:
             print(f"Erro ao enviar o POST request. Código de status: {response.status_code}")
 
     def set_desire_hardware(self, ctx, desireKey):
-        print("setei a desire {desireKey}")
+        print(f"desejo enviado ao periférico {desireKey}")
         esp8266_url = f"http://192.168.0.101/setdesire"
         
         data = {
@@ -62,16 +62,10 @@ class Action:
         else:
             print(f"Erro ao enviar o POST request. Código de status: {response.status_code}")
         
-    def date(self, ctx):
-        time = datetime.datetime.now().strftime('%H:%M')
-        ctx.storage.set_belief("horary", time)
-        print("###> update horary <###")
-        
     def check_memory(self, ctx):
             urls = [
-                'http://localhost:8000/obstacle/',
                 'http://localhost:8000/robot/',
-                'http://localhost:8000/goal/'
+                'http://localhost:8000/goal/',
             ]
 
             for url in urls:
@@ -87,113 +81,77 @@ class Action:
                         print("Último elemento:")
                         print(elemento)
                         if '_class' in elemento:
-                            if elemento['_class'] == 'obstaculo':
-                                ctx.storage.set_belief("obstacle", True)
-                                ctx.storage.set_belief("obstaclex", float(elemento['_x']))
-                                ctx.storage.set_belief("obstacley", float(elemento['_y']))
-                            elif elemento['_class'] == 'robo 1':
-                                ctx.storage.set_belief("robot1y",  float(elemento['_x']))
-                                ctx.storage.set_belief("robot1x",  float(elemento['_y']))
-                            elif elemento['_class'] == 'robo 2':
-                                ctx.storage.set_belief("robot2x",  float(elemento['_x']))
-                                ctx.storage.set_belief("robot2y", float(elemento['_y']))
-                            elif elemento['_class'] == 'objetivo':                   
+                            if elemento['_class'] == 'robot':
+                                ctx.storage.set_belief("robotx",  float(elemento['_y']))
+                                ctx.storage.set_belief("roboty",  float(elemento['_x']))
+                            elif elemento['_class'] == 'goal':                   
                                 ctx.storage.set_belief("goalx",  float(elemento['_x']))                    
                                 ctx.storage.set_belief("goaly", float(elemento['_y']))                    
                             else:
                                 print("A resposta não é uma lista ou está vazia.")
                 else:
                     print("Erro ao fazer a requisição GET. Código de status:", response.status_code)     
+        
+    def check_goal(self, ctx):
+        goal_x = ctx.storage.get_belief("goalx")
+        robot_x = ctx.storage.get_belief("robotx")
+        
+        goal_y = ctx.storage.get_belief("goaly")
+        robot_y = ctx.storage.get_belief("roboty")
+        
+        plan_robot = []
+        # Primeiro, o robô se move no eixo x
+        if robot_x < goal_x:
+            plan_robot.append("Right")
+            while robot_x < goal_x:
+                plan_robot.append("Front")
+                robot_x += 1
+                ctx.storage.set_belief("robotx", robot_x)
 
-    def check_robot(self, ctx):
-        bb = ctx.storage.all_belief()
-        
-        if 'robot 2' in bb:
-            ctx.storage.set_belief("vision_robot2", True)
-        else:
-            ctx.storage.set_belief("vision_robot2", False)
-            
-        if 'robot 1' in bb:
-            ctx.storage.set_belief("vision_robot1", True)
-        else:
-            ctx.storage.set_belief("vision_robot1", False)
-                      
-    def check_obstacle(self, ctx):
-        obstacle = ctx.storage.get_belief('obstacle')
-        robot = ctx.storage.get_belief('robot')
-        
-        if obstacle and robot:
-            obstacle_x = obstacle['x']
-            obstacle_y = obstacle['y']
-            robot_x = robot['x']
-            robot_y = robot['y']
-            
-            # Calcula a distância euclidiana entre o robô e o obstáculo
-            distance = math.sqrt((robot_x - obstacle_x)**2 + (robot_y - obstacle_y)**2)
-            
-            # Define um limite para considerar se o robô está perto do obstáculo
-            limite_distancia = 50.0  # Ajuste esse valor conforme necessário
-            
-            if distance < limite_distancia:
-                ctx.storage.set_belief("obstacle_ahead", True)
-                print("O robô está perto do obstáculo!")
-                
-            else:
-                ctx.storage.set_belief("obstacle_ahead", False)
-                print("O robô não está perto do obstáculo.")
-            
-    def nearby_obstacle(self, ctx):
-        self.set_desire_hardware(ctx, "mr_on")
-        time.sleep(2)
-        self.set_desire_hardware(ctx, "mf_on")
-        time.sleep(2)
-        self.set_desire_hardware(ctx, "ml_on")
-        time.sleep(2)
-        self.set_desire_hardware(ctx, "mf_on")
-        time.sleep(2)
-        self.set_desire_hardware(ctx, "ml_on")
-        time.sleep(2)
-        self.set_desire_hardware(ctx, "mf_on")
-        time.sleep(2)
-        self.set_desire_hardware(ctx, "mr_on")    
-        time.sleep(2)
-        
-    def nearby_goal(self, ctx):
-        goalx = ctx.storage.get_belief("goalx")
-        goaly = ctx.storage.get_belief("goaly")
-        robotx = ctx.storage.get_belief("robot1x")
-        roboty = ctx.storage.get_belief("robot1y")
-        
-        # Calcular a diferença entre as coordenadas x e y
-        dx = goalx - robotx
-        dy = goaly - roboty
+        # Em seguida, o robô se move no eixo y
+        if robot_y < goal_y:
+            plan_robot.append("Left")
+            while robot_y < goal_y:
+                plan_robot.append("Front")
+                robot_y += 1
+                ctx.storage.set_belief("roboty", robot_y)
 
-        # Se o robô estiver longe do objetivo em x, vire na direção certa
-        if abs(dx) <= 0.1 and abs(dy) <= 0.1:  # Ajuste a tolerância conforme necessário
-            # O robô chegou ao objetivo, imprima "Parabéns!".
-            ctx.storage.set_belief("vision_goal", False)
-            print("Parabéns!")
+        # Exibe o plano de movimento
+        print(f"Plano de movimento: {plan_robot}")
+        # Crie um novo dicionário com os valores invertidos
+        inverted_plan = plan_robot[::-1]
+
+        # Exiba o novo dicionário
+        print(f"Plano de movimento invertido: {inverted_plan}")
+        
+        return inverted_plan
+
+    def check_winning(self, ctx):
+        goal_x = ctx.storage.get_belief("goalx")
+        robot_x = ctx.storage.get_belief("robotx")
+        
+        goal_y = ctx.storage.get_belief("goaly")
+        robot_y = ctx.storage.get_belief("roboty")
+        
+        if goal_x == robot_x and goal_y == robot_y:
+            ctx.storage.set_belief("winning", True)
+            self.post_memory(ctx, robot_x, robot_y)
         else:
-            # Ajusta a direção do robô com base na diferença em x e y.
-            if abs(dx) > 0.1:
-                # Ajuste a direção em x
-                if dx > 0:
-                    # Vire para a direita
-                    ctx.storage.set_belief("move_front", False)
-                    ctx.storage.set_belief("move_left", False)
-                    ctx.storage.set_belief("move_right", True)
-                else:
-                    # Vire para a esquerda
-                    ctx.storage.set_belief("move_front", False)
-                    ctx.storage.set_belief("move_left", True)
-                    ctx.storage.set_belief("move_right", False)
-            else:
-                # Se o robô estiver no objetivo em x, ajuste a direção em y e vá para frente.
-                if dy > 0:
-                    ctx.storage.set_belief("move_front", True)
-                    ctx.storage.set_belief("move_left", False)
-                    ctx.storage.set_belief("move_right", False)
-                else:
-                    ctx.storage.set_belief("move_front", True)
-                    ctx.storage.set_belief("move_left", False)
-                    ctx.storage.set_belief("move_right", False)
+            ctx.storage.set_belief("winning", False)
+            
+    def post_memory(self, ctx, robot_x, robot_y):
+        url = 'http://localhost:8000/robot/'
+
+        data = {
+            "_class": "robot",
+            "_x": robot_x,
+            "_y": robot_y
+        }
+
+        response = requests.post(url, json=data)
+
+        if response.status_code == 201:
+            print("Solicitação POST bem-sucedida!")
+        else:
+            print(f"A solicitação POST falhou com o código de status: {response.status_code}")
+            print(response.text)
